@@ -1,0 +1,14 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - JWT_SECRET=your-secret-key
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    restart: always

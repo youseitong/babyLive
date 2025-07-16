@@ -1,0 +1,12 @@
+node_modules
+dist
+logs
+.dockerignore
+.git
+.gitignore
+README.md
+Dockerfile
+.dockerignore
+ecosystem.config.js
+start.js
+.dockerignore
