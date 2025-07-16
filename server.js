@@ -9,7 +9,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 const JWT_SECRET = "your-secret-key"; // 在生产环境中应使用环境变量
 
 app.use(cors());

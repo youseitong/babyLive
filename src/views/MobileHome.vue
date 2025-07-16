@@ -51,34 +51,30 @@
     <div class="mobile-action-buttons" v-if="authStore.isAdmin">
       <a-button 
         type="primary" 
-        block 
         @click="showAddModal" 
-        size="large"
+        block 
+        style="margin-bottom: 16px; height: 48px;"
       >
-        <template #icon><PlusOutlined /></template>
-        添加吃奶排泄记录
+        <template #icon><plus-outlined /></template>
+        添加吃奶/排泄记录
       </a-button>
-      
       <a-button 
         type="primary" 
-        block 
         @click="showAddGrowthModal" 
-        size="large"
-        style="background-color: #722ed1; border-color: #722ed1; margin-top: 10px;"
+        block 
+        style="margin-bottom: 16px; height: 48px; background-color: #722ed1; border-color: #722ed1;"
       >
-        <template #icon><PlusOutlined /></template>
+        <template #icon><plus-outlined /></template>
         添加身高体重记录
       </a-button>
-      
       <a-button 
         type="primary" 
-        block 
         @click="addDefaultRecord" 
-        size="large"
-        style="background-color: #52c41a; border-color: #52c41a; margin-top: 10px;"
+        block 
+        style="margin-bottom: 16px; height: 48px; background-color: #52c41a; border-color: #52c41a;"
         :loading="isAddingDefault"
       >
-        <template #icon><ThunderboltOutlined /></template>
+        <template #icon><thunderbolt-outlined /></template>
         快速添加吃奶记录
       </a-button>
     </div>
@@ -127,7 +123,7 @@
               
               <div class="record-actions" v-if="authStore.isAdmin">
                 <a-button type="link" @click="showEditModal(item)">
-                  <template #icon><EditOutlined /></template>
+                  <template #icon><edit-outlined /></template>
                   编辑
                 </a-button>
                 <a-popconfirm
@@ -137,7 +133,7 @@
                   @confirm="deleteRecord(item.id)"
                 >
                   <a-button type="link" danger>
-                    <template #icon><DeleteOutlined /></template>
+                    <template #icon><delete-outlined /></template>
                     删除
                   </a-button>
                 </a-popconfirm>
@@ -180,7 +176,7 @@
               
               <div class="record-actions" v-if="authStore.isAdmin">
                 <a-button type="link" @click="showEditGrowthModal(item)">
-                  <template #icon><EditOutlined /></template>
+                  <template #icon><edit-outlined /></template>
                   编辑
                 </a-button>
                 <a-popconfirm
@@ -190,7 +186,7 @@
                   @confirm="deleteGrowthRecord(item.id)"
                 >
                   <a-button type="link" danger>
-                    <template #icon><DeleteOutlined /></template>
+                    <template #icon><delete-outlined /></template>
                     删除
                   </a-button>
                 </a-popconfirm>
@@ -203,20 +199,21 @@
 
     <!-- 添加记录弹窗 -->
     <a-modal
-      v-model:visible="addModalVisible"
+      v-model:open="addModalVisible"
       title="添加吃奶排泄记录"
       @ok="handleAddOk"
       @cancel="handleAddCancel"
+      :width="'90%'"
+      :body-style="{ maxHeight: '80vh', overflowY: 'auto' }"
       :maskClosable="false"
       :footer="null"
-      :width="'95%'"
     >
-      <feeding-form ref="feedingFormRef" @add-record="addRecord" />
+      <mobile-feeding-form ref="feedingFormRef" @add-record="addRecord" />
     </a-modal>
     
     <!-- 添加身高体重记录弹窗 -->
     <a-modal
-      v-model:visible="addGrowthModalVisible"
+      v-model:open="addGrowthModalVisible"
       title="添加身高体重记录"
       @ok="handleAddGrowthOk"
       @cancel="handleAddGrowthCancel"
@@ -229,226 +226,130 @@
 
     <!-- 编辑记录弹窗 -->
     <a-modal
-      v-model:visible="editModalVisible"
+      v-model:open="editModalVisible"
       title="编辑记录"
-      @ok="handleEdit"
-      :width="'95%'"
+      @ok="handleEditOk"
+      :width="'90%'"
+      :body-style="{ maxHeight: '80vh', overflowY: 'auto' }"
+      :maskClosable="false"
+      :footer="null"
     >
-      <a-form :model="editForm" layout="vertical">
-        <a-form-item label="吃奶时间">
-          <a-date-picker
-            v-model:value="editForm.time"
-            :show-time="{ format: 'HH:mm' }"
-            format="YYYY-MM-DD HH:mm"
-            style="width: 100%"
-          />
-        </a-form-item>
-
-        <a-form-item label="吃奶量 (ml)">
-          <a-input-number
-            v-model:value="editForm.amount"
-            :min="0"
-            style="width: 100%"
-          />
-        </a-form-item>
-
-        <a-form-item label="吃奶类型">
-          <a-select v-model:value="editForm.type" style="width: 100%">
-            <a-select-option value="母乳">母乳</a-select-option>
-            <a-select-option value="配方奶">配方奶</a-select-option>
-            <a-select-option value="混合">混合</a-select-option>
-          </a-select>
-        </a-form-item>
-
-        <a-form-item label="持续时间 (分钟)">
-          <a-input-number
-            v-model:value="editForm.duration"
-            :min="0"
-            style="width: 100%"
-          />
-        </a-form-item>
-
-        <a-form-item label="排泄类型">
-          <a-select v-model:value="editForm.exType" allowClear style="width: 100%">
-            <a-select-option value="小便">小便</a-select-option>
-            <a-select-option value="大便">大便</a-select-option>
-            <a-select-option value="大小便">大小便</a-select-option>
-          </a-select>
-        </a-form-item>
-
-        <a-form-item
-          label="颜色"
-          v-if="editForm.exType === '大便' || editForm.exType === '大小便'"
-        >
-          <a-select v-model:value="editForm.color" allowClear style="width: 100%">
-            <a-select-option value="黄色">黄色</a-select-option>
-            <a-select-option value="绿色">绿色</a-select-option>
-            <a-select-option value="褐色">褐色</a-select-option>
-            <a-select-option value="黑色">黑色</a-select-option>
-            <a-select-option value="其他">其他</a-select-option>
-          </a-select>
-        </a-form-item>
-
-        <a-form-item label="备注">
-          <a-textarea v-model:value="editForm.notes" :rows="2" />
-        </a-form-item>
-      </a-form>
-    </a-modal>
-
-    <!-- 编辑身高体重记录弹窗 -->
-    <a-modal
-      v-model:visible="editGrowthModalVisible"
-      title="编辑身高体重记录"
-      @ok="handleEditGrowth"
-      :width="'95%'"
-    >
-      <a-form :model="editGrowthForm" layout="vertical">
-        <a-form-item label="记录时间">
-          <a-date-picker
-            v-model:value="editGrowthForm.time"
-            :show-time="{ format: 'HH:mm' }"
-            format="YYYY-MM-DD HH:mm"
-            style="width: 100%"
-          />
-        </a-form-item>
-
-        <a-form-item label="体重 (kg)">
-          <a-input-number
-            v-model:value="editGrowthForm.weight"
-            :min="0"
-            :precision="2"
-            style="width: 100%"
-          />
-        </a-form-item>
-
-        <a-form-item label="身高 (cm)">
-          <a-input-number
-            v-model:value="editGrowthForm.height"
-            :min="0"
-            :precision="1"
-            style="width: 100%"
-          />
-        </a-form-item>
-
-        <a-form-item label="备注">
-          <a-textarea v-model:value="editGrowthForm.notes" :rows="2" />
-        </a-form-item>
-      </a-form>
+      <mobile-feeding-form 
+        ref="editFeedingFormRef" 
+        :initial-data="editForm"
+        @add-record="updateRecord"
+      />
     </a-modal>
   </div>
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
-import dayjs from "dayjs";
-import { useFeedingStore } from "../stores/feeding";
-import { useExcretionStore } from "../stores/excretion";
-import { useGrowthStore } from "../stores/growth";
-import { useAuthStore } from "../stores/auth";
-import FeedingForm from "../components/FeedingForm.vue";
-import GrowthForm from "../components/GrowthForm.vue";
-import { PlusOutlined, ThunderboltOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons-vue";
-import { message } from "ant-design-vue";
+import { ref, computed, onMounted } from 'vue';
+import dayjs from 'dayjs';
+import { message } from 'ant-design-vue';
+import * as Icons from '@ant-design/icons-vue';
+import { useFeedingStore } from '../stores/feeding';
+import { useGrowthStore } from '../stores/growth';
+import { useAuthStore } from '../stores/auth';
+import MobileFeedingForm from '../components/MobileFeedingForm.vue';
+import GrowthForm from '../components/GrowthForm.vue';
+
+// Use specific icons from the Icons object
+const { PlusOutlined, ThunderboltOutlined, EditOutlined, DeleteOutlined } = Icons;
 
 const feedingStore = useFeedingStore();
-const excretionStore = useExcretionStore();
 const growthStore = useGrowthStore();
 const authStore = useAuthStore();
 
-// 弹窗相关
+// Icons are automatically available in the template
+// Refs
+const editFeedingFormRef = ref(null);
 const addModalVisible = ref(false);
 const addGrowthModalVisible = ref(false);
 const editModalVisible = ref(false);
+const editForm = ref({});
+const editGrowthForm = ref({});
 const editGrowthModalVisible = ref(false);
-const feedingFormRef = ref(null);
-const growthFormRef = ref(null);
 const isAddingDefault = ref(false);
 
-// 编辑表单数据
-const editForm = ref({
-  id: null,
-  time: null,
-  amount: 0,
-  type: "母乳",
-  duration: 0,
-  exType: null,
-  color: null,
-  notes: "",
+// Computed properties
+const todayDate = computed(() => dayjs().format('YYYY-MM-DD'));
+const todayTotalAmount = computed(() => {
+  const today = dayjs().format('YYYY-MM-DD');
+  const records = feedingStore.records || [];
+  if (!Array.isArray(records)) return 0;
+  return records
+    .filter(record => record && dayjs(record.time).format('YYYY-MM-DD') === today)
+    .reduce((sum, record) => sum + (parseInt(record.amount) || 0), 0);
 });
 
-const editGrowthForm = ref({
-  id: null,
-  time: null,
-  weight: 0,
-  height: 0,
-  notes: "",
+const todayExcretionStats = computed(() => {
+  const today = dayjs().format('YYYY-MM-DD');
+  const todayRecords = (feedingStore.records || []).filter(
+    record => record && record.time && dayjs(record.time).format('YYYY-MM-DD') === today && record.exType
+  );
+  
+  return {
+    pee: todayRecords.filter(r => r && r.exType && r.exType.includes('小便')).length,
+    poop: todayRecords.filter(r => r && r.exType && r.exType.includes('大便')).length
+  };
 });
 
-// 计算属性
-const todayDate = computed(() => dayjs().format("YYYY-MM-DD"));
-const todayTotalAmount = computed(() => feedingStore.todayTotalAmount);
-const todayExcretionStats = computed(() => excretionStore.todayStats);
 const latestGrowth = computed(() => {
-  if (growthStore.growthRecords.length > 0) {
-    return growthStore.sortedRecords[0];
-  }
-  return null;
+  if (!growthStore.records || !growthStore.records.length) return null;
+  return growthStore.records[0]; // Assuming records are sorted by date descending
 });
 
 const sortedRecords = computed(() => {
-  // 获取吃奶记录
-  const feedingRecs = feedingStore.feedingRecords;
-
-  // 获取排泄记录
-  const excretionRecs = excretionStore.excretionRecords;
-
-  // 创建一个时间映射，用于合并同一时间的记录
-  const timeMap = new Map();
-
-  // 处理吃奶记录
-  feedingRecs.forEach((record) => {
-    const key = record.time;
-    if (!timeMap.has(key)) {
-      timeMap.set(key, { ...record, isExcretionOnly: false });
-    }
-  });
-
-  // 处理排泄记录，如果同一时间有吃奶记录，则合并；否则创建新记录
-  excretionRecs.forEach((record) => {
-    const key = record.time;
-    if (timeMap.has(key)) {
-      // 合并记录
-      const existingRecord = timeMap.get(key);
-      timeMap.set(key, {
-        ...existingRecord,
-        exType: record.type,
-        color: record.color,
-        notes: record.notes || existingRecord.notes,
-      });
-    } else {
-      // 创建新的排泄记录
-      timeMap.set(key, {
-        id: record.id,
-        time: record.time,
-        exType: record.type,
-        color: record.color,
-        notes: record.notes,
-        isExcretionOnly: true,
-      });
-    }
-  });
-
-  // 转换为数组并按时间排序（最新的在前）
-  return Array.from(timeMap.values()).sort((a, b) =>
-    dayjs(b.time).valueOf() - dayjs(a.time).valueOf()
-  );
+  if (!feedingStore.feedingRecords || !Array.isArray(feedingStore.feedingRecords)) {
+    return [];
+  }
+  return [...feedingStore.feedingRecords]
+    .filter(record => !record.deleted)
+    .sort((a, b) => dayjs(b.time).valueOf() - dayjs(a.time).valueOf());
 });
 
 const sortedGrowthRecords = computed(() => {
-  return growthStore.sortedRecords;
+  if (!growthStore.records || !Array.isArray(growthStore.records)) {
+    return [];
+  }
+  return [...growthStore.records]
+    .sort((a, b) => dayjs(b.time).valueOf() - dayjs(a.time).valueOf());
 });
 
-// 方法
+// 编辑记录
+function showEditModal(record) {
+  editForm.value = {
+    id: record.id,
+    time: record.time,
+    amount: record.amount || 50,
+    type: record.type || "混合",
+    duration: record.duration || 5,
+    exType: record.exType || "",
+    color: record.color || "",
+    notes: record.notes || ""
+  };
+  editModalVisible.value = true;
+}
+
+// 更新记录
+function updateRecord(record) {
+  const recordData = {
+    ...record,
+    id: editForm.value.id
+  };
+  
+  feedingStore.updateRecord(recordData)
+    .then(() => {
+      message.success('记录更新成功');
+      editModalVisible.value = false;
+    })
+    .catch(error => {
+      message.error('更新记录失败: ' + error.message);
+    });
+}
+
+// UI Methods
 function showAddModal() {
   addModalVisible.value = true;
 }
@@ -457,186 +358,248 @@ function showAddGrowthModal() {
   addGrowthModalVisible.value = true;
 }
 
-function handleAddOk() {
-  if (feedingFormRef.value) {
-    feedingFormRef.value.submitForm();
+function showEditGrowthModal(record) {
+  editGrowthForm.value = {
+    id: record.id,
+    time: dayjs(record.time),
+    height: record.height || 0,
+    weight: record.weight || 0,
+    notes: record.notes || ''
+  };
+  editGrowthModalVisible.value = true;
+}
+
+// Form Handlers
+function handleEditOk() {
+  if (editFeedingFormRef.value) {
+    editFeedingFormRef.value.submitForm();
+  } else {
+    editModalVisible.value = false;
   }
 }
 
-function handleAddGrowthOk() {
-  if (growthFormRef.value) {
-    growthFormRef.value.submitForm();
-  }
+function handleAddOk() {
+  addModalVisible.value = false;
 }
 
 function handleAddCancel() {
   addModalVisible.value = false;
 }
 
+function handleAddGrowthOk() {
+  addGrowthModalVisible.value = false;
+}
+
 function handleAddGrowthCancel() {
   addGrowthModalVisible.value = false;
 }
 
+// Helper Methods
 function addRecord(record) {
-  feedingStore.addRecord(record);
-  addModalVisible.value = false;
-  message.success("记录添加成功");
+  feedingStore.addRecord(record)
+    .then(() => {
+      message.success('记录添加成功');
+      addModalVisible.value = false;
+    })
+    .catch(error => {
+      message.error('添加记录失败: ' + error.message);
+    });
 }
 
 function addGrowthRecord(record) {
-  growthStore.addRecord(record);
-  addGrowthModalVisible.value = false;
-  message.success("身高体重记录添加成功");
+  growthStore.addRecord(record)
+    .then(() => {
+      message.success('身高体重记录添加成功');
+      addGrowthModalVisible.value = false;
+    })
+    .catch(error => {
+      message.error('添加记录失败: ' + error.message);
+    });
 }
 
 function addDefaultRecord() {
   isAddingDefault.value = true;
-  const now = dayjs().format("YYYY-MM-DD HH:mm");
   const defaultRecord = {
-    time: now,
-    amount: 120,
-    type: "母乳",
+    time: dayjs(),
+    amount: 100,
+    type: '混合',
     duration: 15,
-    exType: "小便",
-    color: null,
-    notes: "快速添加",
+    notes: '默认记录'
   };
-
+  
   feedingStore.addRecord(defaultRecord)
-    .then(() => {
-      message.success("快速添加记录成功");
-      isAddingDefault.value = false;
-    })
-    .catch((error) => {
-      message.error("添加失败: " + error.message);
+    .finally(() => {
       isAddingDefault.value = false;
     });
 }
 
-function showEditModal(record) {
-  editForm.value = {
-    id: record.id,
-    time: dayjs(record.time),
-    amount: record.amount || 0,
-    type: record.type || "母乳",
-    duration: record.duration || 0,
-    exType: record.exType || null,
-    color: record.color || null,
-    notes: record.notes || "",
+// Formatting Helpers
+function getTypeColor(type) {
+  const colors = {
+    '母乳': 'pink',
+    '配方奶': 'blue',
+    '混合': 'purple'
   };
-  editModalVisible.value = true;
+  return colors[type] || 'default';
 }
 
-function showEditGrowthModal(record) {
-  editGrowthForm.value = {
-    id: record.id,
-    time: dayjs(record.time),
-    weight: record.weight || 0,
-    height: record.height || 0,
-    notes: record.notes || "",
+function getExTypeColor(exType) {
+  const colors = {
+    '小便': 'blue',
+    '大便': 'brown',
+    '大小便': 'orange'
   };
-  editGrowthModalVisible.value = true;
+  return colors[exType] || 'default';
 }
 
-function handleEdit() {
-  const updatedRecord = {
-    ...editForm.value,
-    time: dayjs(editForm.value.time).format("YYYY-MM-DD HH:mm"),
+function getColorTag(color) {
+  if (!color) return null;
+  return {
+    color: 'white',
+    backgroundColor: color === '黄色' ? '#fadb14' :
+                   color === '绿色' ? '#52c41a' :
+                   color === '褐色' ? '#8b4513' :
+                   color === '黑色' ? '#000' : '#d3d3d3',
+    border: 'none',
+    padding: '0 8px',
+    borderRadius: '10px',
+    fontSize: '12px'
   };
-  
-  feedingStore.updateRecord(updatedRecord.id, updatedRecord)
-    .then(() => {
-      message.success("记录更新成功");
-      editModalVisible.value = false;
-    })
-    .catch((error) => {
-      message.error("更新失败: " + error.message);
-    });
-}
-
-function handleEditGrowth() {
-  const updatedRecord = {
-    ...editGrowthForm.value,
-    time: dayjs(editGrowthForm.value.time).format("YYYY-MM-DD HH:mm"),
-  };
-  
-  growthStore.updateRecord(updatedRecord.id, updatedRecord)
-    .then(() => {
-      message.success("身高体重记录更新成功");
-      editGrowthModalVisible.value = false;
-    })
-    .catch((error) => {
-      message.error("更新失败: " + error.message);
-    });
-}
-
-function deleteRecord(id) {
-  feedingStore.deleteRecord(id)
-    .then(() => {
-      message.success("记录删除成功");
-    })
-    .catch((error) => {
-      message.error("删除失败: " + error.message);
-    });
-}
-
-function deleteGrowthRecord(id) {
-  growthStore.deleteRecord(id)
-    .then(() => {
-      message.success("身高体重记录删除成功");
-    })
-    .catch((error) => {
-      message.error("删除失败: " + error.message);
-    });
 }
 
 function formatTime(time) {
   return dayjs(time).format("YYYY-MM-DD HH:mm");
 }
 
-function getTypeColor(type) {
-  switch (type) {
-    case "母乳":
-      return "pink";
-    case "配方奶":
-      return "blue";
-    case "混合":
-      return "purple";
-    default:
-      return "default";
-  }
-}
-
-function getExTypeColor(exType) {
-  switch (exType) {
-    case "小便":
-      return "gold";
-    case "大便":
-      return "brown";
-    case "大小便":
-      return "orange";
-    default:
-      return "default";
-  }
-}
-
-function getColorTag(color) {
-  switch (color) {
-    case "黄色":
-      return "gold";
-    case "绿色":
-      return "green";
-    case "褐色":
-      return "brown";
-    case "黑色":
-      return "black";
-    default:
-      return "default";
-  }
-}
+// Lifecycle
+onMounted(() => {
+  // Load initial data from both stores
+  feedingStore.loadRecords();
+  growthStore.loadRecords();
+});
 </script>
 
 <style scoped>
+/* 移动端时间选择器样式 */
+.mobile-date-picker,
+.mobile-time-picker {
+  --antd-arrow-background: #fff;
+}
+
+:deep(.ant-picker-panel) {
+  width: 100%;
+  max-width: 100%;
+  font-size: 16px;
+}
+
+:deep(.mobile-time-picker .ant-picker-panel) {
+  width: 100%;
+  max-width: 100%;
+}
+
+:deep(.mobile-time-picker .ant-picker-time-panel) {
+  width: 100%;
+}
+
+:deep(.mobile-time-picker .ant-picker-time-panel-column) {
+  width: 50%;
+  text-align: center;
+}
+
+:deep(.mobile-time-picker .ant-picker-time-panel-cell-inner) {
+  font-size: 16px;
+  height: 40px;
+  line-height: 40px;
+}
+
+:deep(.ant-picker-input) input {
+  text-align: center;
+  font-size: 16px;
+  height: 40px;
+}
+
+:deep(.ant-input-number-input) {
+  text-align: center;
+  font-size: 16px;
+  height: 40px;
+}
+
+/* 优化选择器弹窗 */
+:deep(.ant-picker-panel) {
+  width: 100%;
+  max-width: 100%;
+}
+
+:deep(.ant-picker-dropdown) {
+  width: 90%;
+  max-width: 400px;
+  left: 50% !important;
+  transform: translateX(-50%);
+  z-index: 1100;
+  position: fixed;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+:deep(.ant-picker-panel-container) {
+  width: 100%;
+  max-width: 100%;
+}
+:deep(.ant-picker-panel-container) {
+  width: 100%;
+  max-width: 100%;
+}
+
+:deep(.ant-picker-panel) {
+  width: 100%;
+}
+
+:deep(.ant-picker-content) {
+  width: 100%;
+}
+
+:deep(.ant-picker-time-panel) {
+  width: 100%;
+}
+
+:deep(.ant-picker-time-panel-column) {
+  width: 100%;
+  text-align: center;
+  overflow-y: auto;
+  max-height: 200px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+:deep(.ant-picker-time-panel-column)::-webkit-scrollbar {
+  display: none;
+}
+
+:deep(.ant-picker-time-panel-cell-inner) {
+  padding: 8px 0;
+  font-size: 16px;
+}
+
+:deep(.ant-picker-time-panel-cell-selected .ant-picker-time-panel-cell-inner) {
+  background: #e6f7ff;
+  font-weight: normal;
+}
+
+:deep(.ant-picker-footer) {
+  text-align: center;
+}
+
+:deep(.ant-input-number-input) {
+  text-align: center;
+  font-size: 16px;
+  height: 40px;
+}
+
+:deep(.ant-picker-input) input {
+  text-align: center;
+  font-size: 16px;
+  height: 40px;
+}
 .mobile-home {
   padding: 10px;
 }
