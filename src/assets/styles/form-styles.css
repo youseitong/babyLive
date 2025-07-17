@@ -1,0 +1,171 @@
+/* 统一表单样式 */
+:root {
+  --primary-color: #1890ff;
+  --primary-hover: #40a9ff;
+  --border-color: #d9d9d9;
+  --text-color: #333;
+  --background-light: #f5f5f5;
+  --background-selected: #e6f7ff;
+  --shadow: 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05);
+  --border-radius: 8px;
+}
+
+/* 基础表单样式 */
+.unified-form {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 16px 8px;
+}
+
+/* 表单项 */
+.unified-form :deep(.ant-form-item) {
+  margin-bottom: 16px;
+}
+
+.unified-form :deep(.ant-form-item-label) {
+  padding: 0 0 6px;
+}
+
+.unified-form :deep(.ant-form-item-label > label) {
+  color: var(--text-color);
+  font-weight: 500;
+  font-size: 14px;
+}
+
+/* 输入控件 */
+.unified-form :is(
+  .ant-input,
+  .ant-input-number,
+  .ant-picker,
+  .ant-select-selector,
+  .ant-input-password
+) {
+  height: 40px;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  transition: all 0.3s;
+  width: 100%;
+}
+
+.unified-form :is(
+  .ant-input-number,
+  .ant-picker,
+  .ant-select-selector
+) {
+  display: flex;
+  align-items: center;
+}
+
+.unified-form :is(
+  .ant-input-number-input,
+  .ant-picker-input
+) {
+  height: 100%;
+}
+
+/* 文本域 */
+.unified-form :deep(.ant-input-textarea) {
+  border-radius: var(--border-radius);
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* 按钮 */
+.unified-form .form-actions {
+  margin-top: 32px;
+  text-align: center;
+}
+
+.unified-form .form-actions :deep(.ant-btn) {
+  height: 44px;
+  border-radius: var(--border-radius);
+  font-size: 16px;
+  font-weight: 500;
+  background-color: var(--primary-color);
+  border: none;
+  transition: all 0.3s;
+  min-width: 200px;
+  padding: 0 24px;
+}
+
+.unified-form .form-actions :deep(.ant-btn):hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+}
+
+/* 选择器下拉菜单 */
+.unified-form :deep(.ant-select-dropdown) {
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+}
+
+.unified-form :deep(.ant-select-item) {
+  padding: 10px 16px;
+  border-radius: 4px;
+  margin: 4px 8px;
+  transition: all 0.2s;
+}
+
+.unified-form :deep(.ant-select-item-option-active:not(.ant-select-item-option-disabled)) {
+  background-color: var(--background-light);
+}
+
+.unified-form :deep(.ant-select-item-option-selected:not(.ant-select-item-option-disabled)) {
+  background-color: var(--background-selected);
+  font-weight: normal;
+}
+
+/* 移动端特定样式 */
+@media (max-width: 768px) {
+  .unified-form {
+    padding: 8px 0;
+  }
+  
+  .unified-form :deep(.ant-col-12) {
+    width: 100%;
+  }
+  
+  .unified-form .form-actions :deep(.ant-btn) {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* 日期时间选择器 */
+.unified-form :deep(.ant-picker-dropdown) {
+  width: 90%;
+  max-width: 400px;
+  left: 50% !important;
+  transform: translateX(-50%);
+  z-index: 1100;
+}
+
+.unified-form :deep(.ant-picker-panel) {
+  width: 100%;
+  max-width: 100%;
+}
+
+.unified-form :deep(.ant-picker-time-panel-column) {
+  width: 100%;
+  text-align: center;
+  overflow-y: auto;
+  max-height: 200px;
+}
+
+/* 表单验证状态 */
+.unified-form :deep(.ant-form-item-has-error :is(
+  .ant-input,
+  .ant-input-number,
+  .ant-picker,
+  .ant-select-selector,
+  .ant-input-password
+)) {
+  border-color: #ff4d4f;
+}
+
+.unified-form :deep(.ant-form-item-explain-error) {
+  color: #ff4d4f;
+  font-size: 12px;
+  margin-top: 4px;
+}

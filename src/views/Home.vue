@@ -101,7 +101,7 @@
     <feeding-record
       :records="sortedRecords"
       @delete-record="deleteRecord"
-      @update-record="updateRecord"
+      @edit-record="showEditModal"
       :is-admin="authStore.isAdmin"
     />
 
@@ -114,16 +114,24 @@
       :is-admin="authStore.isAdmin"
     />
 
-    <!-- 添加记录弹窗 -->
+    <!-- 添加/编辑记录弹窗 -->
     <a-modal
-      v-model:visible="addModalVisible"
-      title="添加吃奶排泄记录"
-      @ok="handleAddOk"
-      @cancel="handleAddCancel"
+      v-model:visible="recordModal.visible"
+      :title="recordModal.title"
+      @cancel="handleRecordCancel"
       :maskClosable="false"
       :footer="null"
+      width="600px"
+      :destroyOnClose="true"
     >
-      <feeding-form ref="feedingFormRef" @add-record="addRecord" />
+      <feeding-form 
+        ref="feedingFormRef" 
+        :record-data="recordModal.recordData"
+        :is-edit-mode="recordModal.isEditMode"
+        @add-record="addRecord"
+        @update-record="handleUpdateRecord"
+        @delete-record="handleDeleteRecord"
+      />
     </a-modal>
     <!-- 添加身高体重记录弹窗 -->
     <a-modal
@@ -140,50 +148,131 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, reactive } from "vue";
 import dayjs from "dayjs";
 import { useFeedingStore } from "../stores/feeding";
 import { useExcretionStore } from "../stores/excretion";
 import { useGrowthStore } from "../stores/growth";
-import { useAuthStore } from "../stores/auth"; // 导入认证状态管理
+import { useAuthStore } from "../stores/auth";
 import FeedingForm from "../components/FeedingForm.vue";
 import GrowthForm from "../components/GrowthForm.vue";
 import FeedingRecord from "../components/FeedingRecord.vue";
 import GrowthRecord from "../components/GrowthRecord.vue";
-import { PlusOutlined, ThunderboltOutlined } from "@ant-design/icons-vue";
-import { message } from "ant-design-vue";
+import { PlusOutlined, ThunderboltOutlined, EditOutlined } from "@ant-design/icons-vue";
+import { message, Modal } from "ant-design-vue";
 const feedingStore = useFeedingStore();
 const excretionStore = useExcretionStore();
 const growthStore = useGrowthStore();
 const authStore = useAuthStore(); // 初始化认证状态管理
 
 // 弹窗相关
-const addModalVisible = ref(false);
+// 记录弹窗状态
+const recordModal = reactive({
+  visible: false,
+  isEditMode: false,
+  title: '添加记录',
+  recordData: null
+});
+
 const addGrowthModalVisible = ref(false);
 const feedingFormRef = ref(null);
 const growthFormRef = ref(null);
 
+// 显示添加记录弹窗
 function showAddModal() {
-  addModalVisible.value = true;
+  recordModal.visible = true;
+  recordModal.isEditMode = false;
+  recordModal.title = '添加吃奶/排泄记录';
+  recordModal.recordData = null;
 }
+
+// 显示编辑记录弹窗
+function showEditModal(record) {
+  recordModal.visible = true;
+  recordModal.isEditMode = true;
+  recordModal.title = '编辑记录';
+  
+  // 准备记录数据
+  const recordData = { ...record };
+  
+  // 处理时间格式
+  if (recordData.time) {
+    recordData.time = dayjs(recordData.time);
+  }
+  
+  // 处理排泄记录
+  if (record.exType) {
+    recordData.exType = record.exType;
+    recordData.color = record.color || '';
+  }
+  
+  recordModal.recordData = recordData;
+}
+
+// 处理记录弹窗取消
+function handleRecordCancel() {
+  recordModal.visible = false;
+  recordModal.recordData = null;
+}
+
+// 处理更新记录
+async function handleUpdateRecord(updatedRecord) {
+  try {
+    // 判断是更新吃奶记录还是排泄记录
+    if (updatedRecord.amount !== null && updatedRecord.amount !== undefined) {
+      await updateRecord(updatedRecord.id, updatedRecord);
+    }
+    if (updatedRecord.exType) {
+      // 查找对应的排泄记录ID
+      const excretionRecord = excretionStore.excretionRecords.find(
+        r => r.time === updatedRecord.time
+      );
+      if (excretionRecord) {
+        await excretionStore.updateRecord(excretionRecord.id, {
+          time: updatedRecord.time,
+          type: updatedRecord.exType,
+          color: updatedRecord.color || '',
+          notes: updatedRecord.notes || ''
+        });
+      }
+    }
+    
+    recordModal.visible = false;
+  } catch (error) {
+    console.error('更新记录失败:', error);
+    message.error('更新记录失败，请重试');
+  }
+}
+
+// 处理删除记录
+async function handleDeleteRecord(id) {
+  try {
+    // 判断是删除吃奶记录还是排泄记录
+    if (feedingStore.feedingRecords.some(record => record.id === id)) {
+      await feedingStore.deleteFeedingRecord(id);
+    } else if (excretionStore.excretionRecords.some(record => record.id === id)) {
+      await excretionStore.deleteExcretionRecord(id);
+    }
+    message.success('记录删除成功');
+  } catch (error) {
+    console.error('删除记录失败:', error);
+    message.error('删除记录失败，请重试');
+    throw error;
+  }
+}
+
+// 身高体重记录相关方法
 function showAddGrowthModal() {
   addGrowthModalVisible.value = true;
 }
-function handleAddOk() {
-  // 手动触发表单提交
-  if (feedingFormRef.value) {
-    feedingFormRef.value.submitForm();
-  }
-}
+
 function handleAddGrowthOk() {
   // 手动触发表单提交
   if (growthFormRef.value) {
     growthFormRef.value.submitForm();
   }
 }
-function handleAddCancel() {
-  addModalVisible.value = false;
-}
+
 function handleAddGrowthCancel() {
   addGrowthModalVisible.value = false;
 }
@@ -262,6 +351,58 @@ const latestGrowth = computed(() => {
   return record || { weight: null, height: null };
 });
 const sortedGrowthRecords = computed(() => growthStore.sortedRecords);
+async function updateRecord(id, record) {
+  try {
+    // 处理纯排泄记录
+    if (record.isExcretionOnly) {
+      const excretionId = id.replace("ex_", ""); // 移除前缀
+      const excretionRecord = {
+        time: record.time,
+        type: record.exType,
+        color: record.color,
+        notes: record.notes,
+      };
+      await excretionStore.updateRecord(excretionId, excretionRecord);
+      return;
+    }
+
+    // 更新吃奶记录
+    if (record.amount !== undefined && record.type) {
+      const feedingRecord = {
+        time: record.time,
+        amount: record.amount,
+        type: record.type,
+        duration: record.duration,
+        notes: record.notes,
+      };
+      await feedingStore.updateRecord(id, feedingRecord);
+    }
+
+    // 如果有关联的排泄记录，也更新它
+    if (record.excretionId && record.exType) {
+      const excretionRecord = {
+        time: record.time,
+        type: record.exType,
+        color: record.color,
+        notes: record.notes,
+      };
+      await excretionStore.updateRecord(record.excretionId, excretionRecord);
+    }
+    // 如果没有关联的排泄记录，但有排泄类型，则新增一条排泄记录
+    else if (record.exType) {
+      const excretionRecord = {
+        time: record.time,
+        type: record.exType,
+        color: record.color,
+        notes: record.notes,
+      };
+      await excretionStore.addRecord(excretionRecord);
+    }
+  } catch (error) {
+    console.error('更新记录失败:', error);
+    throw error;
+  }
+}
 function addRecord(record) {
   // 如果包含吃奶记录信息
   if (record.amount !== undefined && record.type) {
@@ -287,65 +428,9 @@ function addRecord(record) {
   }
 
   // 添加记录后关闭弹窗
-  addModalVisible.value = false;
-  
-  // 添加成功通知
-  if (record.amount !== undefined && record.type && record.exType) {
-    message.success("吃奶排泄记录添加成功");
-  } else if (record.amount !== undefined && record.type) {
-    message.success("吃奶记录添加成功");
-  } else if (record.exType) {
-    message.success("排泄记录添加成功");
-  }
+  recordModal.visible = false;
 }
 
-function updateRecord(id, record) {
-  // 处理纯排泄记录
-  if (record.isExcretionOnly) {
-    const excretionId = id.replace("ex_", ""); // 移除前缀
-    const excretionRecord = {
-      time: record.time,
-      type: record.exType,
-      color: record.color,
-      notes: record.notes,
-    };
-    excretionStore.updateRecord(excretionId, excretionRecord);
-    return;
-  }
-
-  // 更新吃奶记录
-  if (record.amount !== undefined && record.type) {
-    const feedingRecord = {
-      time: record.time,
-      amount: record.amount,
-      type: record.type,
-      duration: record.duration,
-      notes: record.notes,
-    };
-    feedingStore.updateRecord(id, feedingRecord);
-  }
-
-  // 如果有关联的排泄记录，也更新它
-  if (record.excretionId && record.exType) {
-    const excretionRecord = {
-      time: record.time,
-      type: record.exType,
-      color: record.color,
-      notes: record.notes,
-    };
-    excretionStore.updateRecord(record.excretionId, excretionRecord);
-  }
-  // 如果没有关联的排泄记录，但有排泄类型，则新增一条排泄记录
-  else if (record.exType) {
-    const excretionRecord = {
-      time: record.time,
-      type: record.exType,
-      color: record.color,
-      notes: record.notes,
-    };
-    excretionStore.addRecord(excretionRecord);
-  }
-}
 
 function deleteRecord(id) {
   // 处理纯排泄记录

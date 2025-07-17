@@ -33,7 +33,7 @@
 
         <template v-if="column.key === 'action' && isAdmin">
           <a-space>
-            <a-button type="link" @click="showEditModal(record)">
+            <a-button type="link" @click="handleEdit(record)">
               <template #icon><EditOutlined /></template>
             </a-button>
             <a-popconfirm
@@ -51,71 +51,7 @@
       </template>
     </a-table>
 
-    <a-modal
-      v-model:visible="editModalVisible"
-      title="编辑记录"
-      @ok="handleEdit"
-    >
-      <a-form :model="editForm" layout="vertical">
-        <a-form-item label="吃奶时间">
-          <a-date-picker
-            v-model:value="editForm.time"
-            :show-time="{ format: 'HH:mm' }"
-            format="YYYY-MM-DD HH:mm"
-            style="width: 100%"
-          />
-        </a-form-item>
 
-        <a-form-item label="吃奶量 (ml)">
-          <a-input-number
-            v-model:value="editForm.amount"
-            :min="0"
-            style="width: 100%"
-          />
-        </a-form-item>
-
-        <a-form-item label="吃奶类型">
-          <a-select v-model:value="editForm.type">
-            <a-select-option value="母乳">母乳</a-select-option>
-            <a-select-option value="配方奶">配方奶</a-select-option>
-            <a-select-option value="混合">混合</a-select-option>
-          </a-select>
-        </a-form-item>
-
-        <a-form-item label="持续时间 (分钟)">
-          <a-input-number
-            v-model:value="editForm.duration"
-            :min="0"
-            style="width: 100%"
-          />
-        </a-form-item>
-
-        <a-form-item label="排泄类型">
-          <a-select v-model:value="editForm.exType" allowClear>
-            <a-select-option value="小便">小便</a-select-option>
-            <a-select-option value="大便">大便</a-select-option>
-            <a-select-option value="大小便">大小便</a-select-option>
-          </a-select>
-        </a-form-item>
-
-        <a-form-item
-          label="颜色"
-          v-if="editForm.exType === '大便' || editForm.exType === '大小便'"
-        >
-          <a-select v-model:value="editForm.color" allowClear>
-            <a-select-option value="黄色">黄色</a-select-option>
-            <a-select-option value="绿色">绿色</a-select-option>
-            <a-select-option value="褐色">褐色</a-select-option>
-            <a-select-option value="黑色">黑色</a-select-option>
-            <a-select-option value="其他">其他</a-select-option>
-          </a-select>
-        </a-form-item>
-
-        <a-form-item label="备注">
-          <a-textarea v-model:value="editForm.notes" :rows="2" />
-        </a-form-item>
-      </a-form>
-    </a-modal>
   </div>
 </template>
 
@@ -135,7 +71,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["delete-record", "update-record"]);
+const emit = defineEmits(["delete-record", "edit-record"]);
 
 const columns = [
   {
@@ -275,43 +211,8 @@ function getColorTag(color) {
   }
 }
 
-function showEditModal(record) {
-  currentRecordId.value = record.id;
-  editForm.time = dayjs(record.time);
-  editForm.amount = record.amount;
-  editForm.type = record.type;
-  editForm.duration = record.duration;
-  editForm.exType = record.exType || "";
-  editForm.color = record.color || "";
-  editForm.notes = record.notes;
-  editModalVisible.value = true;
-}
-
-function handleEdit() {
-  // 获取当前编辑的记录对象
-  const originalRecord = props.records.find(
-    (r) => r.id === currentRecordId.value
-  );
-
-  const updatedRecord = {
-    time: editForm.time.format("YYYY-MM-DD HH:mm"),
-    // 确保amount不会是undefined或null
-    amount: editForm.amount !== undefined && editForm.amount !== null ? editForm.amount : 0,
-    type: editForm.type,
-    duration: editForm.duration,
-    exType: editForm.exType,
-    color:
-      editForm.exType === "大便" || editForm.exType === "大小便"
-        ? editForm.color
-        : "",
-    notes: editForm.notes,
-    // 保留原记录的关键属性
-    isExcretionOnly: originalRecord.isExcretionOnly,
-    excretionId: originalRecord.excretionId,
-  };
-
-  emit("update-record", currentRecordId.value, updatedRecord);
-  editModalVisible.value = false;
+function handleEdit(record) {
+  emit("edit-record", record);
 }
 
 function handleDelete(id) {
