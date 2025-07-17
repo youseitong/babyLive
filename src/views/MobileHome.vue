@@ -207,6 +207,9 @@
       :body-style="{ maxHeight: '80vh', overflowY: 'auto' }"
       :maskClosable="false"
       :footer="null"
+      :keyboard="true"
+      :focusTriggerAfterClose="true"
+      :getContainer="false"
     >
       <mobile-feeding-form ref="feedingFormRef" @add-record="addRecord" />
     </a-modal>
@@ -220,6 +223,9 @@
       :maskClosable="false"
       :footer="null"
       :width="'95%'"
+      :keyboard="true"
+      :focusTriggerAfterClose="true"
+      :getContainer="false"
     >
       <growth-form ref="growthFormRef" @add-record="addGrowthRecord" />
     </a-modal>
@@ -233,6 +239,9 @@
       :body-style="{ maxHeight: '80vh', overflowY: 'auto' }"
       :maskClosable="false"
       :footer="null"
+      :keyboard="true"
+      :focusTriggerAfterClose="true"
+      :getContainer="false"
     >
       <mobile-feeding-form 
         ref="editFeedingFormRef" 
@@ -480,48 +489,56 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 移动端时间选择器样式 */
+/* 统一输入控件样式 */
+:deep(.ant-input),
+:deep(.ant-input-search),
+:deep(.ant-picker),
+:deep(.ant-input-number),
+:deep(.ant-select-selector) {
+  height: 48px !important;
+  border-radius: 8px;
+  font-size: 16px;
+  width: 100%;
+}
+
+/* 搜索框样式 */
+:deep(.ant-input-search) {
+  margin-bottom: 16px;
+}
+
+:deep(.ant-input-search .ant-input) {
+  height: 48px !important;
+  padding: 0 16px;
+  font-size: 16px;
+  border-radius: 8px 0 0 8px !important;
+}
+
+:deep(.ant-input-search-button) {
+  height: 48px !important;
+  width: 48px !important;
+  border-radius: 0 8px 8px 0 !important;
+}
+
+:deep(.ant-input-search .ant-btn .anticon) {
+  font-size: 20px;
+}
+
+/* 日期时间选择器样式 */
 .mobile-date-picker,
 .mobile-time-picker {
   --antd-arrow-background: #fff;
 }
 
-:deep(.ant-picker-panel) {
-  width: 100%;
-  max-width: 100%;
-  font-size: 16px;
-}
-
-:deep(.mobile-time-picker .ant-picker-panel) {
-  width: 100%;
-  max-width: 100%;
-}
-
-:deep(.mobile-time-picker .ant-picker-time-panel) {
-  width: 100%;
-}
-
-:deep(.mobile-time-picker .ant-picker-time-panel-column) {
-  width: 50%;
-  text-align: center;
-}
-
-:deep(.mobile-time-picker .ant-picker-time-panel-cell-inner) {
-  font-size: 16px;
-  height: 40px;
-  line-height: 40px;
+:deep(.ant-picker-input) {
+  height: 100% !important;
+  display: flex !important;
+  align-items: center;
 }
 
 :deep(.ant-picker-input) input {
-  text-align: center;
-  font-size: 16px;
-  height: 40px;
-}
-
-:deep(.ant-input-number-input) {
-  text-align: center;
-  font-size: 16px;
-  height: 40px;
+  height: 46px !important;
+  padding: 0 11px;
+  text-align: left;
 }
 
 /* 优化选择器弹窗 */

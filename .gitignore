@@ -38,6 +38,9 @@ logs
 database/
 migrations/
 
+# 特定数据库文件
+/src/db/database.sqlite
+
 # 系统文件
 .DS_Store
 Thumbs.db

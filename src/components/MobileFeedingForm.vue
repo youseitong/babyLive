@@ -227,6 +227,59 @@ defineExpose({
 </script>
 
 <style scoped>
+/* 统一所有输入控件的高度和样式 */
+:deep(.ant-picker),
+:deep(.ant-input-number),
+:deep(.ant-select-selector) {
+  height: 48px !important;
+  border-radius: 8px;
+  font-size: 16px;
+  width: 100%;
+}
+
+:deep(.ant-picker-input) {
+  height: 100% !important;
+  display: flex !important;
+  align-items: center;
+}
+
+:deep(.ant-select-selector) {
+  display: flex !important;
+  align-items: center;
+}
+
+:deep(.ant-select-selection-item) {
+  line-height: 46px !important;
+  font-size: 16px;
+}
+
+:deep(.ant-input-number-input) {
+  height: 46px;
+  padding: 0 11px;
+  font-size: 16px;
+}
+
+/* 表单标签样式 */
+:deep(.ant-form-item-label > label) {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+/* 表单元素间距 */
+.ant-form-item {
+  margin-bottom: 16px;
+}
+
+/* 提交按钮样式 */
+.submit-btn {
+  width: 100%;
+  height: 48px;
+  font-size: 16px;
+  font-weight: 500;
+  margin-top: 24px;
+}
+
 /* 移动端时间选择器样式 */
 .mobile-date-picker,
 .mobile-time-picker {
@@ -237,11 +290,6 @@ defineExpose({
   width: 100%;
   max-width: 100%;
   font-size: 16px;
-}
-
-:deep(.mobile-time-picker .ant-picker-panel) {
-  width: 100%;
-  max-width: 100%;
 }
 
 :deep(.ant-picker-dropdown) {
@@ -276,17 +324,5 @@ defineExpose({
 :deep(.ant-picker-time-panel-cell-selected .ant-picker-time-panel-cell-inner) {
   background: #e6f7ff;
   font-weight: normal;
-}
-
-.submit-btn {
-  margin-top: 24px;
-}
-
-:deep(.ant-input-number) {
-  width: 100%;
-}
-
-:deep(.ant-picker) {
-  width: 100%;
 }
 </style>
