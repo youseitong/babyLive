@@ -23,11 +23,25 @@ logs
 *.njsproj
 *.sln
 *.sw?
+*.sqlite
+
+# 数据库文件
+*.db
+*.sql
+*.sqlite
+*.sqlite3
+*.db-journal
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite-*
+database/
+migrations/
 
 # 系统文件
 .DS_Store
-Thumbs.db*.tar
-database.sqlite
+Thumbs.db
+*.tar
 
 # 忽略tar文件
 *.tar
