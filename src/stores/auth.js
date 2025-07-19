@@ -2,8 +2,6 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { API_URL } from "../config";
 
-// const API_URL = 'http://localhost:3000/api';
-
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null);
   const token = ref(localStorage.getItem('token') || null);
@@ -149,6 +147,46 @@ export const useAuthStore = defineStore('auth', () => {
   // 初始化
   initUser();
 
+  // 验证 token 是否有效
+  async function validateToken() {
+    if (!token.value) return false;
+    
+    try {
+      const response = await fetch(`${API_URL}/auth/validate`, {
+        headers: {
+          'Authorization': `Bearer ${token.value}`,
+        },
+      });
+      return response.ok;
+    } catch (error) {
+      console.error('Token 验证失败:', error);
+      return false;
+    }
+  }
+
+  // 刷新 token
+  async function refreshToken() {
+    try {
+      const response = await fetch(`${API_URL}/auth/refresh`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token.value}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        token.value = data.token;
+        localStorage.setItem('token', data.token);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('刷新 token 失败:', error);
+      return false;
+    }
+  }
+
   return {
     user,
     token,
@@ -161,5 +199,7 @@ export const useAuthStore = defineStore('auth', () => {
     registerUser,
     getUsers,
     deleteUser,
+    validateToken,
+    refreshToken,
   };
 });
