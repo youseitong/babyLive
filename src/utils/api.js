@@ -22,23 +22,38 @@ async function request(endpoint, options = {}) {
       headers,
     });
 
-    // 处理未授权响应
-    if (response.status === 401) {
-      // 尝试刷新 token
-      const refreshed = await authStore.refreshToken();
-      if (refreshed) {
-        // 使用新 token 重试请求
-        headers['Authorization'] = `Bearer ${authStore.token}`;
-        const retryResponse = await fetch(`${API_URL}${endpoint}`, {
-          ...options,
-          headers,
-        });
-        return handleResponse(retryResponse);
-      } else {
-        // 刷新 token 失败，登出用户
-        authStore.logout();
-        window.location.href = '/login';
-        return Promise.reject(new Error('会话已过期，请重新登录'));
+    // 根据状态码处理不同的响应情况
+    if (response.status >= 400) {
+      // 处理认证相关错误
+      if (response.status === 401 || response.status === 403) {
+        // 尝试刷新 token
+        const refreshed = await authStore.refreshToken();
+        if (refreshed) {
+          // 使用新 token 重试请求
+          headers['Authorization'] = `Bearer ${authStore.token}`;
+          const retryResponse = await fetch(`${API_URL}${endpoint}`, {
+            ...options,
+            headers,
+          });
+          return handleResponse(retryResponse);
+        } else {
+          // 刷新 token 失败，登出用户
+          authStore.logout();
+          window.location.href = '/login';
+          return Promise.reject(new Error('会话已过期，请重新登录'));
+        }
+      }
+      
+      // 处理其他错误状态码
+      // 4xx - 客户端错误
+      else if (response.status >= 400 && response.status < 500) {
+        // 对于其他客户端错误，直接处理响应
+        return handleResponse(response);
+      }
+      // 5xx - 服务器错误
+      else if (response.status >= 500) {
+        console.error('服务器错误:', response.status);
+        return handleResponse(response);
       }
     }
 
@@ -49,11 +64,12 @@ async function request(endpoint, options = {}) {
   }
 }
 
+
 async function handleResponse(response) {
   const data = await response.json();
   
   if (!response.ok) {
-    const error = new Error(data.message || '请求失败');
+    const error = new Error(data.message || data.error || '请求失败');
     error.status = response.status;
     error.data = data;
     throw error;
