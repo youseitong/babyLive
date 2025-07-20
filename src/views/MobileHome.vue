@@ -3,7 +3,7 @@
     <!-- 顶部统计卡片 -->
     <a-card class="stat-card">
       <div class="stat-header">
-        <div class="stat-title">今日摄入总量test</div>
+        <div class="stat-title">今日摄入总量</div>
         <a-tag color="blue">{{ todayDate }}</a-tag>
       </div>
       <div class="stat-value">{{ todayTotalAmount }} ml</div>
@@ -523,84 +523,6 @@ onMounted(() => {
   font-size: 20px;
 }
 
-/* 日期时间选择器样式 */
-.mobile-date-picker,
-.mobile-time-picker {
-  --antd-arrow-background: #fff;
-}
-
-:deep(.ant-picker-input) {
-  height: 100% !important;
-  display: flex !important;
-  align-items: center;
-}
-
-:deep(.ant-picker-input) input {
-  height: 46px !important;
-  padding: 0 11px;
-  text-align: left;
-}
-
-/* 优化选择器弹窗 */
-:deep(.ant-picker-panel) {
-  width: 100%;
-  max-width: 100%;
-}
-
-:deep(.ant-picker-dropdown) {
-  width: 90%;
-  max-width: 400px;
-  left: 50% !important;
-  transform: translateX(-50%);
-  z-index: 1100;
-  position: fixed;
-  top: 50%;
-  transform: translate(-50%, -50%);
-}
-
-:deep(.ant-picker-panel-container) {
-  width: 100%;
-  max-width: 100%;
-}
-:deep(.ant-picker-panel-container) {
-  width: 100%;
-  max-width: 100%;
-}
-
-:deep(.ant-picker-panel) {
-  width: 100%;
-}
-
-:deep(.ant-picker-content) {
-  width: 100%;
-}
-
-:deep(.ant-picker-time-panel) {
-  width: 100%;
-}
-
-:deep(.ant-picker-time-panel-column) {
-  width: 100%;
-  text-align: center;
-  overflow-y: auto;
-  max-height: 200px;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-:deep(.ant-picker-time-panel-column)::-webkit-scrollbar {
-  display: none;
-}
-
-:deep(.ant-picker-time-panel-cell-inner) {
-  padding: 8px 0;
-  font-size: 16px;
-}
-
-:deep(.ant-picker-time-panel-cell-selected .ant-picker-time-panel-cell-inner) {
-  background: #e6f7ff;
-  font-weight: normal;
-}
 
 :deep(.ant-picker-footer) {
   text-align: center;
