@@ -3,7 +3,7 @@
     <!-- 顶部统计卡片 -->
     <a-card class="stat-card">
       <div class="stat-header">
-        <div class="stat-title">今日摄入总量</div>
+        <div class="stat-title">今日摄入总量test</div>
         <a-tag color="blue">{{ todayDate }}</a-tag>
       </div>
       <div class="stat-value">{{ todayTotalAmount }} ml</div>
