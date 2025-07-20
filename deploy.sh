@@ -213,3 +213,39 @@ check_dependencies() {
 
 # 执行主函数
 main "$@"
+
+# 添加命令行参数处理
+case "$1" in
+  "")
+    # 默认行为：部署应用
+    main
+    ;;
+  "stop")
+    # 停止应用
+    cd "${WORK_DIR}" && docker-compose down -v
+    ;;
+  "update")
+    # 更新应用
+    cd "${WORK_DIR}" && docker-compose pull && docker-compose up -d && docker-compose ps
+    ;;
+  "monitor")
+    # 监控应用
+    cd "${WORK_DIR}" && docker-compose ps && docker stats --no-stream && docker-compose logs --tail=100
+    ;;
+  "help")
+    # 显示帮助信息
+    echo -e "\n${GREEN}=== BabyLive 部署脚本 ===${NC}\n"
+    echo -e "用法: $0 [选项]\n"
+    echo -e "选项:"
+    echo -e "  无参数    执行完整部署流程"
+    echo -e "  stop      停止应用"
+    echo -e "  update    更新应用"
+    echo -e "  monitor   监控应用状态"
+    echo -e "  help      显示此帮助信息\n"
+    ;;
+  *)
+    echo -e "${RED}[ERROR]${NC} 未知选项: $1"
+    echo -e "使用 '$0 help' 查看可用选项"
+    exit 1
+    ;;
+esac
