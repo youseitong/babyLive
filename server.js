@@ -365,6 +365,51 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
+// Token验证API
+app.get("/api/auth/validate", authenticateToken, (req, res) => {
+  // 如果能通过authenticateToken中间件，说明token有效
+  res.json({ valid: true, user: req.user });
+});
+
+// Token刷新API
+app.post("/api/auth/refresh", async (req, res) => {
+  try {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (!token) return res.status(401).json({ error: "未提供认证令牌" });
+
+    // 验证当前token
+    jwt.verify(token, JWT_SECRET, async (err, user) => {
+      if (err) return res.status(403).json({ error: "令牌无效或已过期" });
+      
+      // 从数据库获取最新的用户信息
+      const db = await openDb();
+      const dbUser = await db.get("SELECT * FROM users WHERE id = ?", [user.id]);
+      
+      if (!dbUser) {
+        return res.status(404).json({ error: "用户不存在" });
+      }
+      
+      // 创建新的token，有效期24小时
+      const newToken = jwt.sign(
+        { id: dbUser.id, username: dbUser.username, role: dbUser.role },
+        JWT_SECRET,
+        { expiresIn: "24h" }
+      );
+      
+      // 返回新token和用户信息
+      res.json({
+        token: newToken,
+        user: { id: dbUser.id, username: dbUser.username, role: dbUser.role }
+      });
+    });
+  } catch (error) {
+    console.error("刷新token错误:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // 用户注册API（仅管理员可用）
 app.post("/api/auth/register", authenticateToken, async (req, res) => {
   try {

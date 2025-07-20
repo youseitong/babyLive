@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import dayjs from "dayjs";
 import { API_URL } from "../config";
+import api from "../utils/api";
 
 // const API_URL = 'http://localhost:3000/api';
 
@@ -17,15 +18,8 @@ export const useFeedingStore = defineStore("feeding", () => {
     error.value = null;
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${API_URL}/feeding`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) throw new Error("加载数据失败");
-
-      const data = await response.json();
+      // 使用api.get替代fetch
+      const data = await api.get("/feeding");
       feedingRecords.value = data;
     } catch (err) {
       console.error("加载数据错误:", err);
@@ -41,13 +35,13 @@ export const useFeedingStore = defineStore("feeding", () => {
   }
 
   // 计算属性
- const sortedRecords = computed(() => {
-  return [...feedingRecords.value]
-    .filter(record => !record.deleted) // 过滤掉已删除的记录
-    .sort((a, b) => {
-      return dayjs(b.time).valueOf() - dayjs(a.time).valueOf();
-    });
-});
+  const sortedRecords = computed(() => {
+    return [...feedingRecords.value]
+      .filter((record) => !record.deleted) // 过滤掉已删除的记录
+      .sort((a, b) => {
+        return dayjs(b.time).valueOf() - dayjs(a.time).valueOf();
+      });
+  });
 
   const todayRecords = computed(() => {
     const today = dayjs().format("YYYY-MM-DD");
@@ -133,19 +127,8 @@ export const useFeedingStore = defineStore("feeding", () => {
     error.value = null;
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${API_URL}/feeding`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(record),
-      });
-
-      if (!response.ok) throw new Error("添加记录失败");
-
-      const savedRecord = await response.json();
+      // 使用api.post替代fetch
+      const savedRecord = await api.post("/feeding", record);
       feedingRecords.value.push(savedRecord);
     } catch (err) {
       console.error("添加记录错误:", err);
@@ -165,20 +148,8 @@ export const useFeedingStore = defineStore("feeding", () => {
     error.value = null;
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${API_URL}/feeding/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(updatedRecord),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "更新记录失败");
-      }
+      // 使用api.put替代fetch
+      await api.put(`/feeding/${id}`, updatedRecord);
 
       const index = feedingRecords.value.findIndex(
         (record) => record.id === id
@@ -209,45 +180,39 @@ export const useFeedingStore = defineStore("feeding", () => {
       isLoading.value = false;
     }
   }
- async function deleteRecord(id) {
-  isLoading.value = true;
-  error.value = null;
 
-  try {
-    const token = localStorage.getItem("token");
-    const response = await fetch(`${API_URL}/feeding/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  async function deleteRecord(id) {
+    isLoading.value = true;
+    error.value = null;
 
-    if (!response.ok) throw new Error("删除记录失败");
+    try {
+      // 使用api.delete替代fetch
+      await api.delete(`/feeding/${id}`);
 
-    // 从本地数组中移除记录，保持与后端一致
-    const index = feedingRecords.value.findIndex(
-      (record) => record.id === id
-    );
-    if (index !== -1) {
-      feedingRecords.value.splice(index, 1);
+      // 从本地数组中移除记录，保持与后端一致
+      const index = feedingRecords.value.findIndex(
+        (record) => record.id === id
+      );
+      if (index !== -1) {
+        feedingRecords.value.splice(index, 1);
+      }
+    } catch (err) {
+      console.error("删除记录错误:", err);
+      error.value = err.message;
+
+      // 如果 API 请求失败，在本地标记为已删除
+      const index = feedingRecords.value.findIndex(
+        (record) => record.id === id
+      );
+      if (index !== -1) {
+        // 不实际删除，只在本地标记
+        feedingRecords.value[index].deleted = 1;
+        saveToLocalStorage();
+      }
+    } finally {
+      isLoading.value = false;
     }
-  } catch (err) {
-    console.error("删除记录错误:", err);
-    error.value = err.message;
-
-    // 如果 API 请求失败，在本地标记为已删除
-    const index = feedingRecords.value.findIndex(
-      (record) => record.id === id
-    );
-    if (index !== -1) {
-      // 不实际删除，只在本地标记
-      feedingRecords.value[index].deleted = 1;
-      saveToLocalStorage();
-    }
-  } finally {
-    isLoading.value = false;
   }
-}
 
   function saveToLocalStorage() {
     localStorage.setItem(

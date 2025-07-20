@@ -1,9 +1,18 @@
 import { useAuthStore } from '../stores/auth';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+import { useRouter } from 'vue-router';
+import { eventBus, AUTH_EVENTS } from './eventBus';
+import { API_URL } from '../config';
 
 async function request(endpoint, options = {}) {
   const authStore = useAuthStore();
+  let router;
+  
+  try {
+    router = useRouter(); // 尝试获取router实例
+  } catch (e) {
+    // 如果在setup外部调用，useRouter可能会失败
+    console.warn('无法获取router实例，将使用window.location进行重定向');
+  }
   
   // 设置默认请求头
   const headers = {
@@ -21,28 +30,32 @@ async function request(endpoint, options = {}) {
       ...options,
       headers,
     });
-
+    console.log('response.status',response.status);
+    
     // 根据状态码处理不同的响应情况
     if (response.status >= 400) {
       // 处理认证相关错误
       if (response.status === 401 || response.status === 403) {
-        // 尝试刷新 token
-        const refreshed = await authStore.refreshToken();
-        if (refreshed) {
-          // 使用新 token 重试请求
-          headers['Authorization'] = `Bearer ${authStore.token}`;
-          const retryResponse = await fetch(`${API_URL}${endpoint}`, {
-            ...options,
-            headers,
-          });
-          return handleResponse(retryResponse);
-        } else {
-          // 刷新 token 失败，登出用户
-          authStore.logout();
-          window.location.href = '/login';
-          return Promise.reject(new Error('会话已过期，请重新登录'));
-        }
-      }
+    // 尝试刷新 token
+    const refreshed = await authStore.refreshToken();
+    if (refreshed) {
+      // 使用新 token 重试请求
+      headers['Authorization'] = `Bearer ${authStore.token}`;
+      const retryResponse = await fetch(`${API_URL}${endpoint}`, {
+        ...options,
+        headers,
+      });
+      return handleResponse(retryResponse);
+    } else {
+      // 刷新 token 失败，登出用户
+      authStore.logout();
+      
+      // 触发认证错误事件，让main.js中的监听器处理重定向
+      eventBus.emit(AUTH_EVENTS.AUTH_ERROR);
+      
+      return Promise.reject(new Error('会话已过期，请重新登录'));
+    }
+  }
       
       // 处理其他错误状态码
       // 4xx - 客户端错误
@@ -63,7 +76,6 @@ async function request(endpoint, options = {}) {
     throw error;
   }
 }
-
 
 async function handleResponse(response) {
   const data = await response.json();
@@ -106,5 +118,6 @@ export const api = {
     });
   },
 };
+
 
 export default api;

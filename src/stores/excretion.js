@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import dayjs from "dayjs";
 import { API_URL } from "../config";
+import api from "../utils/api";
 
 // const API_URL = 'http://localhost:3000/api';
 
@@ -12,23 +13,15 @@ export const useExcretionStore = defineStore("excretion", () => {
   const error = ref(null);
 
   // 初始化加载数据
-    async function loadRecords() {
+  async function loadRecords() {
     isLoading.value = true;
     error.value = null;
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${API_URL}/excretion`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) throw new Error("加载数据失败");
-
-      const data = await response.json();
+      // 使用api.get替代fetch
+      const data = await api.get("/excretion");
       excretionRecords.value = data;
     } catch (err) {
-      // ... existing code ...
       console.error("加载数据错误:", err);
       error.value = err.message;
       // 如果API请求失败，尝试从localStorage加载
@@ -41,13 +34,13 @@ export const useExcretionStore = defineStore("excretion", () => {
     }
   }
 
-const sortedRecords = computed(() => {
-  return [...excretionRecords.value]
-    .filter(record => !record.deleted) // 过滤掉已删除的记录
-    .sort((a, b) => {
-      return dayjs(b.time).valueOf() - dayjs(a.time).valueOf();
-    });
-});
+  const sortedRecords = computed(() => {
+    return [...excretionRecords.value]
+      .filter((record) => !record.deleted) // 过滤掉已删除的记录
+      .sort((a, b) => {
+        return dayjs(b.time).valueOf() - dayjs(a.time).valueOf();
+      });
+  });
 
   const todayRecords = computed(() => {
     const today = dayjs().format("YYYY-MM-DD");
@@ -108,19 +101,8 @@ const sortedRecords = computed(() => {
     error.value = null;
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${API_URL}/excretion`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(record),
-      });
-
-      if (!response.ok) throw new Error("添加记录失败");
-
-      const savedRecord = await response.json();
+      // 使用api.post替代fetch
+      const savedRecord = await api.post("/excretion", record);
       excretionRecords.value.push(savedRecord);
     } catch (err) {
       console.error("添加记录错误:", err);
@@ -140,17 +122,8 @@ const sortedRecords = computed(() => {
     error.value = null;
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${API_URL}/excretion/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(updatedRecord),
-      });
-
-      if (!response.ok) throw new Error("更新记录失败");
+      // 使用api.put替代fetch
+      await api.put(`/excretion/${id}`, updatedRecord);
 
       const index = excretionRecords.value.findIndex(
         (record) => record.id === id
@@ -181,45 +154,38 @@ const sortedRecords = computed(() => {
     }
   }
 
- async function deleteRecord(id) {
-  isLoading.value = true;
-  error.value = null;
+  async function deleteRecord(id) {
+    isLoading.value = true;
+    error.value = null;
 
-  try {
-    const token = localStorage.getItem("token");
-    const response = await fetch(`${API_URL}/excretion/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    try {
+      // 使用api.delete替代fetch
+      await api.delete(`/excretion/${id}`);
 
-    if (!response.ok) throw new Error("删除记录失败");
+      // 从本地数组中移除记录，保持与后端一致
+      const index = excretionRecords.value.findIndex(
+        (record) => record.id === id
+      );
+      if (index !== -1) {
+        excretionRecords.value.splice(index, 1);
+      }
+    } catch (err) {
+      console.error("删除记录错误:", err);
+      error.value = err.message;
 
-    // 从本地数组中移除记录，保持与后端一致
-    const index = excretionRecords.value.findIndex(
-      (record) => record.id === id
-    );
-    if (index !== -1) {
-      excretionRecords.value.splice(index, 1);
+      // 如果 API 请求失败，在本地标记为已删除
+      const index = excretionRecords.value.findIndex(
+        (record) => record.id === id
+      );
+      if (index !== -1) {
+        // 不实际删除，只在本地标记
+        excretionRecords.value[index].deleted = 1;
+        saveToLocalStorage();
+      }
+    } finally {
+      isLoading.value = false;
     }
-  } catch (err) {
-    console.error("删除记录错误:", err);
-    error.value = err.message;
-
-    // 如果 API 请求失败，在本地标记为已删除
-    const index = excretionRecords.value.findIndex(
-      (record) => record.id === id
-    );
-    if (index !== -1) {
-      // 不实际删除，只在本地标记
-      excretionRecords.value[index].deleted = 1;
-      saveToLocalStorage();
-    }
-  } finally {
-    isLoading.value = false;
   }
-}
 
   function saveToLocalStorage() {
     localStorage.setItem(
