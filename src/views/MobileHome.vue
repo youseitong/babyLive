@@ -1,203 +1,208 @@
 <template>
   <div class="mobile-home">
-    <!-- 顶部统计卡片 -->
-    <a-card class="stat-card">
-      <div class="stat-header">
-        <div class="stat-title">今日摄入总量</div>
-        <a-tag color="blue">{{ todayDate }}</a-tag>
-      </div>
-      <div class="stat-value">{{ todayTotalAmount }} ml</div>
-    </a-card>
-
-    <a-card class="stat-card">
-      <div class="stat-header">
-        <div class="stat-title">今日排泄次数</div>
-        <a-tag color="blue">{{ todayDate }}</a-tag>
-      </div>
-      <div class="stat-row">
-        <div class="stat-item">
-          <span class="stat-label">小便:</span>
-          <span class="stat-value-small">{{ todayExcretionStats.pee }} 次</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label">大便:</span>
-          <span class="stat-value-small"
-            >{{ todayExcretionStats.poop }} 次</span
-          >
-        </div>
-      </div>
-    </a-card>
-
-    <a-card class="stat-card">
-      <div class="stat-header">
-        <div class="stat-title">最新身高体重</div>
-        <a-tag color="blue">{{ todayDate }}</a-tag>
-      </div>
-      <div class="stat-row">
-        <div class="stat-item">
-          <span class="stat-label">体重:</span>
-          <span class="stat-value-small">
-            {{
-              latestGrowth && latestGrowth.weight
-                ? latestGrowth.weight + " kg"
-                : "暂无记录"
-            }}
-          </span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label">身高:</span>
-          <span class="stat-value-small">
-            {{
-              latestGrowth && latestGrowth.height
-                ? latestGrowth.height + " cm"
-                : "暂无记录"
-            }}
-          </span>
-        </div>
-      </div>
-    </a-card>
-
-    <!-- 添加记录按钮组 -->
-    <div class="mobile-action-buttons" v-if="authStore.isAdmin">
-      <a-button
-        type="default"
-        @click="$router.push('/mobile/feeding-records')"
-        block
-        style="margin-bottom: 16px; height: 48px"
+    <!-- 二级菜单 -->
+    <div class="secondary-menu">
+      <a-menu
+        v-model:selectedKeys="currentTab"
+        mode="horizontal"
+        :style="{ lineHeight: '48px', textAlign: 'center' }"
       >
-        <template #icon><bar-chart-outlined /></template>
-        查看吃奶记录统计
-      </a-button>
-      <a-button
-        type="primary"
-        @click="showAddModal"
-        block
-        style="margin-bottom: 16px; height: 48px"
-      >
-        <template #icon><plus-outlined /></template>
-        添加吃奶/排泄记录test
-      </a-button>
-      <a-button
-        type="primary"
-        @click="showAddGrowthModal"
-        block
-        style="
-          margin-bottom: 16px;
-          height: 48px;
-          background-color: #722ed1;
-          border-color: #722ed1;
-        "
-      >
-        <template #icon><plus-outlined /></template>
-        添加身高体重记录
-      </a-button>
-      <a-button
-        type="primary"
-        @click="addDefaultRecord"
-        block
-        style="
-          margin-bottom: 16px;
-          height: 48px;
-          background-color: #52c41a;
-          border-color: #52c41a;
-        "
-        :loading="isAddingDefault"
-      >
-        <template #icon><thunderbolt-outlined /></template>
-        快速添加吃奶记录
-      </a-button>
+        <a-menu-item key="records">
+          <template #icon><ordered-list-outlined /></template>
+          吃奶记录
+        </a-menu-item>
+        <a-menu-item key="stats">
+          <template #icon><bar-chart-outlined /></template>
+          吃奶统计
+        </a-menu-item>
+      </a-menu>
     </div>
 
-    <!-- 记录列表 -->
-    <a-divider>吃奶排泄记录</a-divider>
+    <!-- 今日统计卡片 -->
+    <div v-if="currentTab[0] === 'records'" class="stats-container">
+      <a-card class="stat-card">
+        <div class="stat-header">
+          <div class="stat-title">今日摄入总量</div>
+          <a-tag color="blue">{{ todayDate }}</a-tag>
+        </div>
+        <div class="stat-value">{{ todayTotalAmount }} ml</div>
+      </a-card>
 
-    <!-- 移动端适配的记录列表 -->
-    <div class="mobile-record-list">
-      <a-list
-        :data-source="sortedRecords"
-        :pagination="{ pageSize: 5, size: 'small' }"
-      >
-        <template #renderItem="{ item }">
-          <a-list-item>
-            <a-card style="width: 100%">
-              <div class="record-header">
-                <div class="record-time">{{ formatTime(item.time) }}</div>
-                <div class="record-tags">
-                  <a-tag
-                    v-if="!item.isExcretionOnly"
-                    :color="getTypeColor(item.type)"
-                    >{{ item.type }}</a-tag
+      <a-card class="stat-card">
+        <div class="stat-header">
+          <div class="stat-title">今日排泄次数</div>
+          <a-tag color="blue">{{ todayDate }}</a-tag>
+        </div>
+        <div class="stat-row">
+          <div class="stat-item">
+            <span class="stat-label">小便:</span>
+            <span class="stat-value-small">{{ todayExcretionStats.pee }} 次</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">大便:</span>
+            <span class="stat-value-small">{{ todayExcretionStats.poop }} 次</span>
+          </div>
+        </div>
+      </a-card>
+
+      <a-card class="stat-card">
+        <div class="stat-header">
+          <div class="stat-title">最新身高体重</div>
+          <a-tag color="blue">{{ todayDate }}</a-tag>
+        </div>
+        <div class="stat-row">
+          <div class="stat-item">
+            <span class="stat-label">体重:</span>
+            <span class="stat-value-small">
+              {{
+                latestGrowth && latestGrowth.weight
+                  ? latestGrowth.weight + " kg"
+                  : "暂无记录"
+              }}
+            </span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">身高:</span>
+            <span class="stat-value-small">
+              {{
+                latestGrowth && latestGrowth.height
+                  ? latestGrowth.height + " cm"
+                  : "暂无记录"
+              }}
+            </span>
+          </div>
+        </div>
+      </a-card>
+
+      <!-- 添加记录按钮组 -->
+      <div class="mobile-action-buttons" v-if="authStore.isAdmin">
+        <a-button
+          type="primary"
+          @click="showAddModal"
+          block
+          style="margin-bottom: 16px; height: 48px"
+        >
+          <template #icon><plus-outlined /></template>
+          添加吃奶/排泄记录
+        </a-button>
+        <a-button
+          type="primary"
+          @click="showAddGrowthModal"
+          block
+          style="
+            margin-bottom: 16px;
+            height: 48px;
+            background-color: #722ed1;
+            border-color: #722ed1;
+          "
+        >
+          <template #icon><plus-outlined /></template>
+          添加身高体重记录
+        </a-button>
+        <a-button
+          type="primary"
+          @click="addDefaultRecord"
+          block
+          style="
+            margin-bottom: 16px;
+            height: 48px;
+            background-color: #52c41a;
+            border-color: #52c41a;
+          "
+          :loading="isAddingDefault"
+        >
+          <template #icon><thunderbolt-outlined /></template>
+          快速添加吃奶记录
+        </a-button>
+      </div>
+
+      <a-divider>吃奶排泄记录</a-divider>
+
+      <!-- 移动端适配的记录列表 -->
+      <div class="mobile-record-list">
+        <a-list
+          :data-source="sortedRecords"
+          :pagination="{ pageSize: 5, size: 'small' }"
+        >
+          <template #renderItem="{ item }">
+            <a-list-item>
+              <a-card style="width: 100%">
+                <div class="record-header">
+                  <div class="record-time">{{ formatTime(item.time) }}</div>
+                  <div class="record-tags">
+                    <a-tag
+                      v-if="!item.isExcretionOnly"
+                      :color="getTypeColor(item.type)"
+                    >{{ item.type }}</a-tag>
+                    <a-tag v-else color="cyan">排泄记录</a-tag>
+                    <a-tag
+                      v-if="item.exType"
+                      :color="getExTypeColor(item.exType)"
+                    >{{ item.exType }}</a-tag>
+                  </div>
+                </div>
+
+                <div class="record-details">
+                  <div v-if="!item.isExcretionOnly" class="record-detail-item">
+                    <span class="detail-label">吃奶量:</span>
+                    <span class="detail-value">{{ item.amount }} ml</span>
+                  </div>
+                  <div v-if="!item.isExcretionOnly" class="record-detail-item">
+                    <span class="detail-label">持续时间:</span>
+                    <span class="detail-value">{{ item.duration }} 分钟</span>
+                  </div>
+                  <div
+                    v-if="item.exType === '大便' && item.color"
+                    class="record-detail-item"
                   >
-                  <a-tag v-else color="cyan">排泄记录</a-tag>
-                  <a-tag
-                    v-if="item.exType"
-                    :color="getExTypeColor(item.exType)"
-                    >{{ item.exType }}</a-tag
-                  >
+                    <span class="detail-label">颜色:</span>
+                    <span class="detail-value">
+                      <a-tag :color="getColorTag(item.color)">
+                        {{ item.color }}
+                      </a-tag>
+                    </span>
+                  </div>
+                  <div v-if="item.notes" class="record-detail-item">
+                    <span class="detail-label">备注:</span>
+                    <span class="detail-value">{{ item.notes }}</span>
+                  </div>
                 </div>
-              </div>
 
-              <div class="record-details">
-                <div v-if="!item.isExcretionOnly" class="record-detail-item">
-                  <span class="detail-label">吃奶量:</span>
-                  <span class="detail-value">{{ item.amount }} ml</span>
-                </div>
-                <div v-if="!item.isExcretionOnly" class="record-detail-item">
-                  <span class="detail-label">持续时间:</span>
-                  <span class="detail-value">{{ item.duration }} 分钟</span>
-                </div>
-                <div
-                  v-if="item.exType === '大便' && item.color"
-                  class="record-detail-item"
-                >
-                  <span class="detail-label">颜色:</span>
-                  <span class="detail-value">
-                    <a-tag :color="getColorTag(item.color)">{{
-                      item.color
-                    }}</a-tag>
-                  </span>
-                </div>
-                <div v-if="item.notes" class="record-detail-item">
-                  <span class="detail-label">备注:</span>
-                  <span class="detail-value">{{ item.notes }}</span>
-                </div>
-              </div>
-
-              <div class="record-actions" v-if="authStore.isAdmin">
-                <a-button type="link" @click="showEditModal(item)">
-                  <template #icon><edit-outlined /></template>
-                  编辑
-                </a-button>
-                <a-popconfirm
-                  title="确定要删除这条记录吗？"
-                  ok-text="是"
-                  cancel-text="否"
-                  @confirm="deleteRecord(item.id)"
-                >
-                  <a-button type="link" danger>
-                    <template #icon><delete-outlined /></template>
-                    删除
+                <div class="record-actions" v-if="authStore.isAdmin">
+                  <a-button type="link" @click="showEditModal(item)">
+                    <template #icon><edit-outlined /></template>
+                    编辑
                   </a-button>
-                </a-popconfirm>
-              </div>
-            </a-card>
-          </a-list-item>
-        </template>
-      </a-list>
-    </div>
+                  <a-popconfirm
+                    title="确定要删除这条记录吗？"
+                    ok-text="是"
+                    cancel-text="否"
+                    @confirm="deleteRecord(item.id)"
+                  >
+                    <a-button type="link" danger>
+                      <template #icon><delete-outlined /></template>
+                      删除
+                    </a-button>
+                  </a-popconfirm>
+                </div>
+              </a-card>
+            </a-list-item>
+          </template>
+        </a-list>
+      </div>
 
-    <a-divider>身高体重记录</a-divider>
+      <a-divider>身高体重记录</a-divider>
 
-    <!-- 移动端适配的身高体重记录列表 -->
-    <div class="mobile-record-list">
-      <a-list
-        :data-source="sortedGrowthRecords"
-        :pagination="{ pageSize: 5, size: 'small' }"
-      >
-        <template #renderItem="{ item }">
-          <a-list-item>
-            <a-card style="width: 100%">
-              <div class="record-header">
+      <!-- 移动端适配的身高体重记录列表 -->
+      <div class="mobile-record-list">
+        <a-list
+          :data-source="sortedGrowthRecords"
+          :pagination="{ pageSize: 5, size: 'small' }"
+        >
+          <template #renderItem="{ item }">
+            <a-list-item>
+              <a-card style="width: 100%">
+                <div class="record-header">
                 <div class="record-time">{{ formatTime(item.time) }}</div>
               </div>
 
@@ -237,6 +242,13 @@
           </a-list-item>
         </template>
       </a-list>
+    </div>
+
+    </div> <!-- 结束 records 内容 -->
+
+    <!-- 统计内容 -->
+    <div v-else-if="currentTab[0] === 'stats'">
+      <router-view></router-view>
     </div>
 
     <!-- 添加记录弹窗 -->
@@ -295,26 +307,49 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import dayjs from "dayjs";
+import { useRouter } from "vue-router";
+import { 
+  PlusOutlined, 
+  ThunderboltOutlined, 
+  EditOutlined,
+  DeleteOutlined,
+  BarChartOutlined,
+  OrderedListOutlined
+} from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
-import * as Icons from "@ant-design/icons-vue";
 import { useFeedingStore } from "../stores/feeding";
 import { useGrowthStore } from "../stores/growth";
 import { useAuthStore } from "../stores/auth";
 import MobileFeedingForm from "../components/MobileFeedingForm.vue";
 import GrowthForm from "../components/GrowthForm.vue";
-const {
-  PlusOutlined,
-  ThunderboltOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  BarChartOutlined,
-} = Icons;
 
+const router = useRouter();
+const authStore = useAuthStore();
 const feedingStore = useFeedingStore();
 const growthStore = useGrowthStore();
-const authStore = useAuthStore();
+
+// 当前选中的标签页
+const currentTab = ref(['records']);
+
+// 监听路由变化，保持标签页状态
+watch(() => router.currentRoute.value.path, (newPath) => {
+  if (newPath.includes('feeding-records')) {
+    currentTab.value = ['stats'];
+  } else {
+    currentTab.value = ['records'];
+  }
+}, { immediate: true });
+
+// 标签页变化时更新路由
+watch(currentTab, (newTab) => {
+  if (newTab[0] === 'stats') {
+    router.push('/mobile/feeding-records');
+  } else {
+    router.push('/mobile');
+  }
+});
 
 // Icons are automatically available in the template
 // Refs

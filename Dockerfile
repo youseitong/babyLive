@@ -3,10 +3,12 @@ FROM node:18 AS build
 WORKDIR /app
 
 # 安装构建依赖
-RUN apt-get update && apt-get install -y \
+RUN apt-get update --fix-missing && \
+    apt-get install -y --no-install-recommends \
     python3 \
     make \
     g++ \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # 复制 package 文件并安装所有依赖
@@ -25,10 +27,12 @@ FROM node:18-slim
 WORKDIR /app
 
 # 安装运行时依赖
-RUN apt-get update && apt-get install -y \
+RUN apt-get update --fix-missing && \
+    apt-get install -y --no-install-recommends \
     python3 \
     make \
     g++ \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # 复制构建产物和必要的文件

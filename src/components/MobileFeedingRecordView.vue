@@ -1,10 +1,21 @@
 <template>
   <div class="mobile-feeding-record-view">
-    <!-- 返回按钮 -->
-    <div class="back-button-container">
-      <a-button type="link" @click="router.push('/mobile')" class="back-button">
-        <arrow-left-outlined /> 返回
-      </a-button>
+    <!-- 二级菜单 -->
+    <div class="secondary-menu">
+      <a-menu
+        v-model:selectedKeys="currentTab"
+        mode="horizontal"
+        :style="{ lineHeight: '48px', textAlign: 'center' }"
+      >
+        <a-menu-item key="records" @click="router.push('/mobile')">
+          <template #icon><ordered-list-outlined /></template>
+          吃奶记录
+        </a-menu-item>
+        <a-menu-item key="stats">
+          <template #icon><bar-chart-outlined /></template>
+          吃奶统计
+        </a-menu-item>
+      </a-menu>
     </div>
     <!-- 顶部筛选栏 -->
     <div class="filter-bar">
@@ -180,13 +191,20 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import dayjs from 'dayjs';
+import { 
+  OrderedListOutlined, 
+  BarChartOutlined,
+  ArrowLeftOutlined,
+  CalendarOutlined,
+  EditOutlined,
+  DeleteOutlined
+} from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
-import { EditOutlined, DeleteOutlined, CalendarOutlined, ArrowLeftOutlined } from '@ant-design/icons-vue';
 import { useFeedingStore } from '../stores/feeding';
 import { useExcretionStore } from '../stores/excretion';
 import { useAuthStore } from '../stores/auth';
-import { useRouter } from 'vue-router';
 import MobileFeedingForm from './MobileFeedingForm.vue';
 import * as echarts from 'echarts/core';
 import { BarChart, LineChart } from 'echarts/charts';
@@ -208,6 +226,9 @@ const router = useRouter();
 const feedingStore = useFeedingStore();
 const excretionStore = useExcretionStore();
 const authStore = useAuthStore();
+
+// 当前选中的标签页
+const currentTab = ref(['stats']);
 
 // 时间筛选
 const timeFilter = ref("today");
@@ -733,6 +754,7 @@ watch(
   display: flex;
   align-items: center;
   margin-bottom: 16px;
+  margin-top: 16px;
 }
 
 .date-filter-btn {
