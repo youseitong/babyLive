@@ -15,6 +15,9 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1" >&2
 }
 
+print_message "正在拉取最新代码..."
+git pull
+
 print_message "开始重建BabyLive应用..."
 
 # 停止并移除现有容器和卷

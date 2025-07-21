@@ -60,13 +60,22 @@
     <!-- 添加记录按钮组 -->
     <div class="mobile-action-buttons" v-if="authStore.isAdmin">
       <a-button
+        type="default"
+        @click="$router.push('/mobile/feeding-records')"
+        block
+        style="margin-bottom: 16px; height: 48px"
+      >
+        <template #icon><bar-chart-outlined /></template>
+        查看吃奶记录统计
+      </a-button>
+      <a-button
         type="primary"
         @click="showAddModal"
         block
         style="margin-bottom: 16px; height: 48px"
       >
         <template #icon><plus-outlined /></template>
-        添加吃奶/排泄记录
+        添加吃奶/排泄记录test
       </a-button>
       <a-button
         type="primary"
@@ -96,15 +105,6 @@
       >
         <template #icon><thunderbolt-outlined /></template>
         快速添加吃奶记录
-      </a-button>
-      <a-button
-        type="default"
-        @click="$router.push('/mobile/feeding-records')"
-        block
-        style="margin-bottom: 16px; height: 48px"
-      >
-        <template #icon><bar-chart-outlined /></template>
-        查看吃奶记录统计
       </a-button>
     </div>
 
@@ -304,8 +304,13 @@ import { useGrowthStore } from "../stores/growth";
 import { useAuthStore } from "../stores/auth";
 import MobileFeedingForm from "../components/MobileFeedingForm.vue";
 import GrowthForm from "../components/GrowthForm.vue";
-const { PlusOutlined, ThunderboltOutlined, EditOutlined, DeleteOutlined, BarChartOutlined } =
-  Icons;
+const {
+  PlusOutlined,
+  ThunderboltOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  BarChartOutlined,
+} = Icons;
 
 const feedingStore = useFeedingStore();
 const growthStore = useGrowthStore();
@@ -545,10 +550,10 @@ function formatTime(time) {
 const deleteRecord = async (id) => {
   try {
     await feedingStore.deleteRecord(id);
-    message.success('记录删除成功');
+    message.success("记录删除成功");
   } catch (error) {
-    console.error('删除记录失败:', error);
-    message.error('删除记录失败');
+    console.error("删除记录失败:", error);
+    message.error("删除记录失败");
   }
 };
 
