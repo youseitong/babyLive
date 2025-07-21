@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Home from "../views/Home.vue";
 import { useAuthStore } from "../stores/auth";
-
+import MobileFeedingRecordView from "../components/MobileFeedingRecordView.vue";
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -35,6 +35,12 @@ const router = createRouter({
       component: () => import("../views/MobileHome.vue"),
       meta: { requiresAuth: true, isMobile: true },
     },
+    {
+      path: "/mobile/feeding-records",
+      name: "MobileFeedingRecords",
+      component: MobileFeedingRecordView,
+      meta: { requiresAuth: true, isMobile: true },
+    },
   ],
 });
 
@@ -48,14 +54,14 @@ function isMobileDevice() {
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
   const isMobile = isMobileDevice();
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
-  const isGuest = to.matched.some(record => record.meta.guest);
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
+  const isGuest = to.matched.some((record) => record.meta.guest);
 
   // 如果路由需要认证
   if (requiresAuth) {
     // 检查 token 是否存在
     if (!authStore.token) {
-      next('/login');
+      next("/login");
       return;
     }
 
@@ -67,7 +73,7 @@ router.beforeEach(async (to, from, next) => {
       if (!refreshed) {
         // 刷新失败，清除认证信息并重定向到登录页
         authStore.logout();
-        next('/login');
+        next("/login");
         return;
       }
     }
@@ -75,13 +81,13 @@ router.beforeEach(async (to, from, next) => {
 
   // 已登录用户访问登录页时重定向到首页
   if (isGuest && authStore.isAuthenticated) {
-    next('/');
+    next("/");
     return;
   }
 
   // 移动端重定向
-  if (isMobile && to.path === '/') {
-    next('/mobile');
+  if (isMobile && to.path === "/") {
+    next("/mobile");
     return;
   }
 
