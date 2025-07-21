@@ -541,6 +541,17 @@ function formatTime(time) {
   return dayjs(time).format("YYYY-MM-DD HH:mm");
 }
 
+// Delete record
+const deleteRecord = async (id) => {
+  try {
+    await feedingStore.deleteRecord(id);
+    message.success('记录删除成功');
+  } catch (error) {
+    console.error('删除记录失败:', error);
+    message.error('删除记录失败');
+  }
+};
+
 // Lifecycle
 onMounted(() => {
   // Load initial data from both stores
